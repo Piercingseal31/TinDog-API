@@ -14,13 +14,32 @@ class User extends Authenticatable
 
     /**
      * The attributes that are mass assignable.
-     *
+     *  Added some field that must be field -kirk
      * @var list<string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+    'first_name',
+    'last_name',
+    'display_name',
+    'email',
+    'password',
+    'role',
+    'status',
+    'is_master_admin',
+    'plan',
+    'location',
+    'owner_bio',
+    'signup_date',
+    'last_seen',
+    'dog_name',
+    'dog_breed',
+    'dog_age',
+    'dog_sex',
+    'dog_size',
+    'dog_bio',
+    'dog_avatar',
+    'dog_cover_photo',
+    'instance_id'
     ];
 
     /**

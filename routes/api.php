@@ -17,3 +17,5 @@ use App\Http\Controllers\AuthController;
 
 Route::post('/admin-login', [AuthController::class, 'adminLogin']);
 Route::post('/user-login', [AuthController::class, 'userLogin']);
+//added for registering -kirk
+Route::post('/register', [AuthController::class, 'register']);
