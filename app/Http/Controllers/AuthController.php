@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -26,22 +27,27 @@ class AuthController extends Controller
         $validated = $validator->validated();
 
         try {
-            $admin = DB::table('users')
-                ->where('email', $validated['email'])
+            $admin = User::where('email', $validated['email'])
                 ->where('role', 'admin')
                 ->first();
 
-            if (!$admin || $admin->password !== $validated['password']) {
+            // REVERTED to your original plain-text password check
+            if (!$admin || !($validated['password'] == $admin->password)) {
                 return response()->json(['success' => false, 'message' => 'Invalid administrator credentials.'], 401);
             }
 
+            // Create a token for the admin
+            $token = $admin->createToken('admin-token')->plainTextToken;
+
             return response()->json([
                 'success' => true,
-                'adminId' => $admin->id
+                'adminId' => $admin->id,
+                'token' => $token // Send the token
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'A server error occurred.'], 500);
+            // This catch block is what's being triggered
+            return response()->json(['success' => false, 'message' => 'A server error occurred: ' . $e->getMessage()], 500);
         }
     }
 
@@ -62,28 +68,35 @@ class AuthController extends Controller
         $validated = $validator->validated();
 
         try {
-            $user = DB::table('users')
-                ->where('email', $validated['email'])
+            $user = User::where('email', $validated['email'])
                 ->where('role', 'user')
                 ->first();
 
-            if (!$user || $user->password !== $validated['password']) {
+            // REVERTED to your original plain-text password check
+            if (!$user || !($validated['password'] == $user->password)) {
                 return response()->json(['success' => false, 'message' => 'Invalid user credentials.'], 401);
             }
+
+            // Create a token for the user
+            $token = $user->createToken('user-token')->plainTextToken;
 
             return response()->json([
                 'success' => true,
                 'userId' => $user->id,
                 'status' => $user->status,
+                'token' => $token // Send the token
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'A server error occurred.'], 500);
+            return response()->json(['success' => false, 'message' => 'A server error occurred: ' . $e->getMessage()], 500);
         }
     }
 
-        // This is for authetication when registering for user -kirk
-        public function register(Request $request)
+    /**
+     * Handle a registration request for a new user.
+     * This uses your original bcrypt logic.
+     */
+    public function register(Request $request)
     {
         $request->validate([
             'first_name' => 'required|string|max:255',
@@ -97,7 +110,7 @@ class AuthController extends Controller
             'last_name' => $request->last_name,
             'display_name' => $request->first_name . ' ' . $request->last_name,
             'email' => $request->email,
-            'password' => bcrypt($request->password),
+            'password' => bcrypt($request->password), // Using your original bcrypt
             'role' => 'user',
             'status' => 'active',
         ]);
@@ -107,7 +120,4 @@ class AuthController extends Controller
             'user' => $user
         ], 201);
     }
-
-
-
 }
